@@ -491,35 +491,8 @@ function loadByManualId() {
   loadCustomerData(id);
 }
 
-// ── お客様データ取得 ───────────────────────────
+// ── お客様データ取得（getEntryForStaffを使用）───
 async function loadCustomerData(entryId) {
-  hideMessages();
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'lookupEntry', entryId, email: '__staff__' })
-    });
-
-    // スタッフ側は照合不要なので、別エンドポイントに相当する処理
-    // ここでは submitCustomer 後のデータをそのまま表示するため
-    // GASのlookupEntryをスタッフ専用モードで呼ぶ（emailを'__staff__'で送るとGAS側でスキップ）
-    const data = await res.json();
-
-    if (!data.success && data.error !== 'メールアドレスが一致しません') {
-      return showError(data.error || '読み取りに失敗しました');
-    }
-
-    // お客様情報の表示（GASから返ってくるデータを使用）
-    showCustomerInfo(entryId, data);
-    currentEntryId = entryId;
-
-  } catch (e) {
-    showError('通信エラーが発生しました');
-  }
-}
-
-// スタッフ用：エントリーIDだけで情報を取得する
-async function loadCustomerDataForStaff(entryId) {
   hideMessages();
   try {
     const res = await fetch(GAS_URL, {
