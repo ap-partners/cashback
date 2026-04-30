@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>キャッシュバック 受取申請</title>
+<style>
+  :root {
+    --navy:   #1B3A5C;
+    --teal:   #2A7A8A;
+    --teal2:  #EBF5F7;
+    --amber:  #D97706;
+    --gray:   #64748B;
+    --light:  #F8FAFC;
+    --border: #CBD5E1;
+    --white:  #FFFFFF;
+    --red:    #DC2626;
+    --green:  #16A34A;
+    --text:   #1E293B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .header h1 { font-size: 17px; font-weight: 700; }
+  .header p  { font-size: 11px; opacity: 0.7; margin-top: 3px; }
+
+  .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--teal2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 4px; height: 18px;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+
+  /* 期間エラー画面 */
+  .period-error {
+    display: none;
+    text-align: center;
+    padding: 32px 20px;
+  }
+  .period-icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+  }
+  .period-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+  .period-msg {
+    font-size: 14px;
+    color: var(--gray);
+    line-height: 1.8;
+    background: #FEF2F2;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .period-dates {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--gray);
+  }
+  .period-dates strong { color: var(--navy); }
+
+  /* フォーム */
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray);
+    margin-bottom: 6px;
+  }
+  .required {
+    background: var(--red);
+    color: white;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  input, select {
+    width: 100%;
+    height: 46px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: white;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,122,138,0.1);
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray);
+    pointer-events: none;
+  }
+
+  /* お客様情報確認 */
+  .confirm-box {
+    display: none;
+    background: var(--teal2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .confirm-box.show { display: block; }
+  .confirm-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(42,122,138,0.1);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--gray); font-size: 12px; }
+  .info-value { font-weight: 600; color: var(--navy); }
+  .cb-amount  { font-size: 22px; font-weight: 800; color: var(--amber); }
+
+  /* 受取方法 */
+  .method-options { display: none; }
+  .method-options.show { display: block; }
+
+  .method-btn {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .method-btn:hover { border-color: var(--teal); }
+  .method-btn.selected { border-color: var(--teal); background: var(--teal2); }
+  .method-btn-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 3px;
+  }
+  .method-btn-sub {
+    font-size: 12px;
+    color: var(--gray);
+  }
+
+  /* 振込口座フォーム */
+  .bank-form, .address-form { display: none; margin-top: 14px; }
+  .bank-form.show, .address-form.show { display: block; }
+
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    resize: vertical;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,122,138,0.1);
+  }
+
+  .btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary  { background: var(--teal);  color: white; }
+  .btn-primary:hover  { background: #236878; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--border); cursor: not-allowed; }
+  .btn-outline  {
+    background: white;
+    color: var(--teal);
+    border: 2px solid var(--teal);
+    margin-bottom: 10px;
+  }
+
+  .alert {
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: var(--red); }
+
+  /* 完了画面 */
+  #doneScreen {
+    display: none;
+    text-align: center;
+    padding: 32px 20px;
+  }
+  .done-icon {
+    width: 80px; height: 80px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 40px;
+  }
+  .done-title { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+  .done-sub   { font-size: 14px; color: var(--gray); line-height: 1.8; margin-bottom: 20px; }
+  .done-notice {
+    background: #FFF7ED;
+    border: 1px solid #FED7AA;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    color: #92400E;
+    line-height: 1.7;
+    text-align: left;
+  }
+
+  .loading { display: none; text-align: center; padding: 16px; color: var(--gray); font-size: 13px; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>キャッシュバック 受取申請</h1>
+  <p>SoftBank Air / SoftBank 光</p>
+</div>
+
+<div class="container">
+
+  <!-- 期間外エラー -->
+  <div class="period-error" id="periodError">
+    <div class="period-icon">⏰</div>
+    <div class="period-title">申請期間外です</div>
+    <div class="period-msg" id="periodMsg">
+      現在、申請を受け付けていません。
+    </div>
+    <div class="period-dates" id="periodDates"></div>
+  </div>
+
+  <!-- メインフォーム -->
+  <div id="mainForm">
+
+    <div class="alert alert-error" id="alertError"></div>
+
+    <!-- Step1: 認証 -->
+    <div class="card" id="authCard">
+      <div class="card-title">エントリーIDと<br>メールアドレスで認証</div>
+
+      <div class="field">
+        <label>エントリーID <span class="required">必須</span></label>
+        <input type="text" id="entryId" placeholder="例: AB3X7K2M"
+          maxlength="8" style="letter-spacing:0.15em; text-transform:uppercase;"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+
+      <div class="field">
+        <label>メールアドレス <span class="required">必須</span></label>
+        <input type="email" id="lookupEmail" placeholder="エントリー時のメールアドレス">
+      </div>
+
+      <div class="loading" id="authLoading">
+        <div class="spinner"></div>
+        確認中...
+      </div>
+
+      <button class="btn btn-primary" onclick="lookupEntry()">
+        確認する →
+      </button>
+    </div>
+
+    <!-- お客様情報確認 -->
+    <div class="confirm-box" id="confirmBox">
+      <div class="confirm-title">✅ エントリー情報を確認</div>
+      <div class="info-row">
+        <span class="info-label">氏名</span>
+        <span class="info-value" id="conf-name">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">契約内容</span>
+        <span class="info-value" id="conf-contract">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">申請期間</span>
+        <span class="info-value" id="conf-period">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">キャッシュバック金額</span>
+        <span class="info-value cb-amount" id="conf-amount">-</span>
+      </div>
+    </div>
+
+    <!-- Step2: 受取方法 -->
+    <div class="method-options" id="methodOptions">
+      <div class="card">
+        <div class="card-title">受取方法を選択</div>
+
+        <button class="method-btn" onclick="selectMethod('銀行振込')">
+          <div class="method-btn-title">🏦 銀行振込</div>
+          <div class="method-btn-sub">カ）エイピーパートナーズより振込。入力ミス時は2回目以降手数料差引。</div>
+        </button>
+        <button class="method-btn" onclick="selectMethod('商品券')">
+          <div class="method-btn-title">🎁 商品券（郵送）</div>
+          <div class="method-btn-sub">ご指定の住所へ商品券を郵送します</div>
+        </button>
+        <button class="method-btn" onclick="selectMethod('Amazonギフト券')">
+          <div class="method-btn-title">📦 Amazonギフト券</div>
+          <div class="method-btn-sub">メールアドレスにギフト券コードを送付します</div>
+        </button>
+      </div>
+
+      <!-- 銀行振込フォーム -->
+      <div class="bank-form card" id="bankForm">
+        <div class="card-title">振込先口座情報</div>
+        <div class="field">
+          <label>金融機関名 <span class="required">必須</span></label>
+          <input type="text" id="bankName" placeholder="例: 〇〇銀行">
+        </div>
+        <div class="field">
+          <label>支店名 <span class="required">必須</span></label>
+          <input type="text" id="bankBranch" placeholder="例: 新宿支店">
+        </div>
+        <div class="field">
+          <label>口座種別 <span class="required">必須</span></label>
+          <div class="select-wrap">
+            <select id="bankType">
+              <option value="">選択してください</option>
+              <option value="普通">普通</option>
+              <option value="当座">当座</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>口座番号 <span class="required">必須</span></label>
+          <input type="text" id="bankNumber" placeholder="例: 1234567" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>口座名義（カナ） <span class="required">必須</span></label>
+          <input type="text" id="bankHolder" placeholder="例: ヤマダ タロウ">
+        </div>
+        <div style="background:#FEF3EE;border-radius:8px;padding:12px;font-size:12px;color:#92400E;line-height:1.7;margin-top:4px;">
+          ⚠ 振込名義は「カ）エイピーパートナーズ」となります。<br>
+          口座情報の入力ミスにより振込ができなかった場合、
+          2回目以降の振込は振込手数料を差し引いた金額での再振込となります。
+        </div>
+      </div>
+
+      <!-- 商品券フォーム -->
+      <div class="address-form card" id="addressForm">
+        <div class="card-title">郵送先住所</div>
+        <div class="field">
+          <label>郵便番号 <span class="required">必須</span></label>
+          <input type="text" id="postCode" placeholder="例: 123-4567" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>住所 <span class="required">必須</span></label>
+          <textarea id="addressDetail" placeholder="都道府県・市区町村・番地・建物名・部屋番号"></textarea>
+        </div>
+        <div class="field">
+          <label>お名前 <span class="required">必須</span></label>
+          <input type="text" id="addressName" placeholder="山田 太郎">
+        </div>
+      </div>
+
+      <div class="loading" id="submitLoading">
+        <div class="spinner"></div>
+        申請中...
+      </div>
+
+      <button class="btn btn-primary" id="submitClaimBtn"
+        onclick="submitClaim()" style="display:none">
+        申請を確定する →
+      </button>
+    </div>
+
+  </div><!-- /mainForm -->
+
+  <!-- 完了画面 -->
+  <div id="doneScreen">
+    <div class="done-icon">✓</div>
+    <div class="done-title">申請完了</div>
+    <div class="done-sub" id="doneMessage">
+      キャッシュバックの受取申請を受け付けました。<br>
+      確認メールをお送りしましたのでご確認ください。
+    </div>
+    <div class="done-notice">
+      📅 申請後、<strong>30〜60日程度</strong>でお渡し手続きが完了します。<br>
+      手続き完了後、改めてご連絡いたします。<br><br>
+      ご不明な点がございましたら、案内用紙に記載の
+      連絡先までお問い合わせください。
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyQynV2MTXwhqU5178vcjAOQTmTpyktP5wL_DoxgmZp3NPyA5F8x8LIIs_ya9iH7YQahQ/exec';
+
+// URLパラメータからエントリーIDを取得（QRコードに埋め込む場合）
+const urlParams = new URLSearchParams(window.location.search);
+const urlEntryId = urlParams.get('id');
+if (urlEntryId) {
+  document.getElementById('entryId').value = urlEntryId.toUpperCase();
+}
+
+// URLパラメータがある場合、期間チェックを先に実行
+if (urlEntryId) {
+  checkPeriodFirst(urlEntryId);
+}
+
+async function checkPeriodFirst(entryId) {
+  try {
+    const res = await fetch(`${GAS_URL}?action=checkPeriod&entryId=${encodeURIComponent(entryId)}`);
+    const data = await res.json();
+
+    if (!data.inPeriod) {
+      document.getElementById('mainForm').style.display = 'none';
+      const errDiv = document.getElementById('periodError');
+      errDiv.style.display = 'block';
+      document.getElementById('periodMsg').textContent = data.message || '現在、申請期間外です。';
+      if (data.claimStart && data.claimEnd) {
+        document.getElementById('periodDates').innerHTML =
+          `申請期間：<strong>${data.claimStart}</strong> 〜 <strong>${data.claimEnd}</strong>`;
+      }
+    }
+  } catch(e) {
+    // エラーの場合はそのまま通常フォームを表示
+  }
+}
+
+let selectedMethod = null;
+let entryData = null;
+
+async function lookupEntry() {
+  hideError();
+  const entryId = document.getElementById('entryId').value.trim().toUpperCase();
+  const email   = document.getElementById('lookupEmail').value.trim();
+
+  if (!entryId) return showError('エントリーIDを入力してください');
+  if (!email)   return showError('メールアドレスを入力してください');
+
+  document.getElementById('authLoading').style.display = 'block';
+
+  try {
+    // まず期間チェック
+    const periodRes = await fetch(`${GAS_URL}?action=checkPeriod&entryId=${encodeURIComponent(entryId)}`);
+    const periodData = await periodRes.json();
+
+    if (!periodData.inPeriod) {
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('periodError').style.display = 'block';
+      document.getElementById('periodMsg').textContent = periodData.message || '申請期間外です。';
+      if (periodData.claimStart && periodData.claimEnd) {
+        document.getElementById('periodDates').innerHTML =
+          `申請期間：<strong>${periodData.claimStart}</strong> 〜 <strong>${periodData.claimEnd}</strong>`;
+      }
+      return;
+    }
+
+    // エントリー照合
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'lookupEntry', entryId, email })
+    });
+    const data = await res.json();
+
+    if (!data.success) return showError(data.error || '照合に失敗しました');
+
+    entryData = { ...data, entryId, email };
+
+    // 情報表示
+    document.getElementById('conf-name').textContent     = data.name;
+    document.getElementById('conf-contract').textContent = data.contractType;
+    document.getElementById('conf-period').textContent   = `${data.claimStart} 〜 ${data.claimEnd}`;
+    document.getElementById('conf-amount').textContent   = '¥' + parseInt(data.cbAmount).toLocaleString();
+
+    document.getElementById('authCard').style.display = 'none';
+    document.getElementById('confirmBox').classList.add('show');
+    document.getElementById('methodOptions').classList.add('show');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch(e) {
+    showError('通信エラーが発生しました');
+  } finally {
+    document.getElementById('authLoading').style.display = 'none';
+  }
+}
+
+function selectMethod(method) {
+  selectedMethod = method;
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  // すべての詳細フォームを隠す
+  document.getElementById('bankForm').classList.remove('show');
+  document.getElementById('addressForm').classList.remove('show');
+
+  if (method === '銀行振込')    document.getElementById('bankForm').classList.add('show');
+  if (method === '商品券')      document.getElementById('addressForm').classList.add('show');
+
+  document.getElementById('submitClaimBtn').style.display = 'flex';
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+async function submitClaim() {
+  hideError();
+  if (!selectedMethod) return showError('受取方法を選択してください');
+
+  let bankInfo = null;
+  let addressInfo = null;
+
+  if (selectedMethod === '銀行振込') {
+    const bankName   = document.getElementById('bankName').value.trim();
+    const bankBranch = document.getElementById('bankBranch').value.trim();
+    const bankType   = document.getElementById('bankType').value;
+    const bankNumber = document.getElementById('bankNumber').value.trim();
+    const bankHolder = document.getElementById('bankHolder').value.trim();
+    if (!bankName || !bankBranch || !bankType || !bankNumber || !bankHolder) {
+      return showError('振込先口座情報をすべて入力してください');
+    }
+    bankInfo = { bankName, bankBranch, bankType, bankNumber, bankHolder };
+  }
+
+  if (selectedMethod === '商品券') {
+    const postCode      = document.getElementById('postCode').value.trim();
+    const addressDetail = document.getElementById('addressDetail').value.trim();
+    const addressName   = document.getElementById('addressName').value.trim();
+    if (!postCode || !addressDetail || !addressName) {
+      return showError('郵送先情報をすべて入力してください');
+    }
+    addressInfo = `〒${postCode} ${addressDetail}（${addressName}）`;
+  }
+
+  document.getElementById('submitLoading').style.display = 'block';
+  document.getElementById('submitClaimBtn').disabled = true;
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'submitClaim',
+        entryId:     entryData.entryId,
+        email:       entryData.email,
+        claimMethod: selectedMethod,
+        bankInfo,
+        addressInfo,
+      })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      showError(data.error || '申請に失敗しました');
+      return;
+    }
+
+    // 完了画面
+    document.getElementById('mainForm').style.display = 'none';
+    document.getElementById('doneScreen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch(e) {
+    showError('通信エラーが発生しました');
+  } finally {
+    document.getElementById('submitLoading').style.display = 'none';
+    document.getElementById('submitClaimBtn').disabled = false;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('alertError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function hideError() {
+  document.getElementById('alertError').style.display = 'none';
+}
+</script>
+</body>
+</html>

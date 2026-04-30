@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スタッフ用 CB登録</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root {
+    --navy:   #1B3A5C;
+    --teal:   #2A7A8A;
+    --teal2:  #EBF5F7;
+    --amber:  #D97706;
+    --gray:   #64748B;
+    --light:  #F1F5F9;
+    --border: #CBD5E1;
+    --white:  #FFFFFF;
+    --red:    #DC2626;
+    --green:  #16A34A;
+    --text:   #1E293B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-badge {
+    background: var(--amber);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .header h1 { font-size: 16px; font-weight: 700; }
+
+  .container { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 4px; height: 16px;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+
+  /* QRスキャナー */
+  #qr-reader {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--teal);
+  }
+  #qr-reader video { border-radius: 8px; }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    font-size: 12px;
+    color: var(--gray);
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* 手入力フォーム */
+  .manual-input {
+    display: flex;
+    gap: 8px;
+  }
+  .manual-input input {
+    flex: 1;
+    height: 42px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 15px;
+    font-family: inherit;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .manual-input input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,122,138,0.1);
+  }
+  .btn-manual {
+    height: 42px;
+    padding: 0 16px;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* お客様情報表示 */
+  .customer-info {
+    display: none;
+    background: var(--teal2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .customer-info.show { display: block; }
+  .customer-info-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(42,122,138,0.1);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--gray); font-size: 12px; }
+  .info-value { font-weight: 600; color: var(--navy); }
+
+  /* スタッフ入力フォーム */
+  #staffForm { display: none; }
+  #staffForm.show { display: block; }
+
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray);
+    margin-bottom: 6px;
+  }
+  .required {
+    background: var(--red);
+    color: white;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  input[type="text"], input[type="password"], input[type="date"], select {
+    width: 100%;
+    height: 46px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: white;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,122,138,0.1);
+  }
+
+  /* CB金額選択 */
+  .amount-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .amount-btn {
+    height: 42px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .amount-btn:hover   { border-color: var(--teal); color: var(--teal); }
+  .amount-btn.selected {
+    border-color: var(--teal);
+    background: var(--teal);
+    color: white;
+  }
+
+  .custom-amount-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .custom-amount-wrap label { font-size: 12px; color: var(--gray); white-space: nowrap; }
+  .custom-amount-wrap input {
+    flex: 1;
+    height: 42px;
+  }
+  .custom-amount-wrap span { font-size: 14px; color: var(--gray); white-space: nowrap; }
+
+  /* 金額確認表示 */
+  .amount-preview {
+    background: linear-gradient(135deg, #1B3A5C, #2A7A8A);
+    color: white;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin-top: 12px;
+    display: none;
+  }
+  .amount-preview.show { display: block; }
+  .amount-preview .preview-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; }
+  .amount-preview .preview-amount { font-size: 32px; font-weight: 800; letter-spacing: 0.02em; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray);
+    pointer-events: none;
+  }
+
+  .btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover  { background: #236878; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--border); cursor: not-allowed; }
+
+  .alert {
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .alert-error   { background: #FEF2F2; border: 1px solid #FECACA; color: var(--red); }
+  .alert-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: var(--green); }
+
+  /* 完了画面 */
+  #doneScreen {
+    display: none;
+    text-align: center;
+    padding: 32px 20px;
+  }
+  .done-icon {
+    width: 72px; height: 72px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 36px;
+  }
+  .done-title { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+  .done-sub   { font-size: 14px; color: var(--gray); line-height: 1.7; margin-bottom: 28px; }
+  .done-summary {
+    background: var(--teal2);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .loading { display: none; text-align: center; padding: 16px; color: var(--gray); font-size: 13px; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">STAFF</div>
+  <h1>キャッシュバック 登録システム</h1>
+</div>
+
+<div class="container">
+  <div class="alert alert-error"   id="alertError"></div>
+  <div class="alert alert-success" id="alertSuccess"></div>
+
+  <!-- ═══ QRスキャン ═══ -->
+  <div class="card" id="scanCard">
+    <div class="card-title">お客様QRコードを読み取る</div>
+    <div id="qr-reader"></div>
+
+    <div class="or-divider">または手動入力</div>
+
+    <div class="manual-input">
+      <input type="text" id="manualId" placeholder="エントリーID（8桁）" maxlength="8">
+      <button class="btn-manual" onclick="loadByManualId()">検索</button>
+    </div>
+  </div>
+
+  <!-- ═══ お客様情報確認 ═══ -->
+  <div class="customer-info" id="customerInfo">
+    <div class="customer-info-title">✅ お客様情報を確認</div>
+    <div class="info-row">
+      <span class="info-label">エントリーID</span>
+      <span class="info-value" id="ci-id">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">氏名</span>
+      <span class="info-value" id="ci-name">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">メールアドレス</span>
+      <span class="info-value" id="ci-email">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">電話番号</span>
+      <span class="info-value" id="ci-phone">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">契約内容</span>
+      <span class="info-value" id="ci-contract">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">契約日</span>
+      <span class="info-value" id="ci-date">-</span>
+    </div>
+  </div>
+
+  <!-- ═══ スタッフ入力フォーム ═══ -->
+  <div id="staffForm">
+    <div class="card">
+      <div class="card-title">キャッシュバック金額</div>
+
+      <div class="amount-grid" id="amountGrid">
+        <button class="amount-btn" onclick="selectAmount(5000)">¥5,000</button>
+        <button class="amount-btn" onclick="selectAmount(10000)">¥10,000</button>
+        <button class="amount-btn" onclick="selectAmount(15000)">¥15,000</button>
+        <button class="amount-btn" onclick="selectAmount(20000)">¥20,000</button>
+        <button class="amount-btn" onclick="selectAmount(25000)">¥25,000</button>
+        <button class="amount-btn" onclick="selectAmount(30000)">¥30,000</button>
+        <button class="amount-btn" onclick="selectAmount(35000)">¥35,000</button>
+        <button class="amount-btn" onclick="selectAmount(40000)">¥40,000</button>
+        <button class="amount-btn" onclick="selectAmount(45000)">¥45,000</button>
+        <button class="amount-btn" onclick="selectAmount(50000)">¥50,000</button>
+        <button class="amount-btn" onclick="selectAmount(55000)">¥55,000</button>
+        <button class="amount-btn" onclick="selectAmount(60000)">¥60,000</button>
+      </div>
+
+      <div class="custom-amount-wrap">
+        <label>任意入力</label>
+        <input type="number" id="customAmount" placeholder="例: 22000"
+          min="1000" max="60000" step="1000" oninput="onCustomAmount(this.value)">
+        <span>円 (上限¥60,000)</span>
+      </div>
+
+      <div class="amount-preview" id="amountPreview">
+        <div class="preview-label">設定金額</div>
+        <div class="preview-amount" id="previewValue">¥0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">スタッフ認証</div>
+
+      <div class="field">
+        <label>社員番号 <span class="required">必須</span></label>
+        <input type="text" id="staffId" placeholder="例: S001">
+      </div>
+
+      <div class="field">
+        <label>生年月日 <span class="required">必須</span></label>
+        <input type="date" id="staffBirthday">
+      </div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      登録中...
+    </div>
+
+    <button class="btn btn-primary" id="submitBtn" onclick="submitStaff()">
+      登録して完了する →
+    </button>
+  </div>
+
+  <!-- ═══ 完了画面 ═══ -->
+  <div id="doneScreen">
+    <div class="done-icon">✓</div>
+    <div class="done-title">登録完了</div>
+    <div class="done-sub">
+      お客様にメールを送信しました。<br>
+      次のお客様の登録を行う場合は<br>
+      下のボタンから再開できます。
+    </div>
+    <div class="done-summary" id="doneSummary"></div>
+    <button class="btn btn-primary" onclick="resetForm()">
+      次のお客様を登録する
+    </button>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyQynV2MTXwhqU5178vcjAOQTmTpyktP5wL_DoxgmZp3NPyA5F8x8LIIs_ya9iH7YQahQ/exec';
+
+let currentEntryId = null;
+let selectedAmount  = null;
+let html5QrCode     = null;
+let scannerRunning  = false;
+
+// ── QRスキャナー起動 ──────────────────────────
+function startScanner() {
+  html5QrCode = new Html5Qrcode('qr-reader');
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 220, height: 220 } },
+    (decodedText) => {
+      html5QrCode.stop().then(() => {
+        scannerRunning = false;
+        loadCustomerData(decodedText.trim().toUpperCase());
+      });
+    },
+    () => {}
+  ).then(() => { scannerRunning = true; })
+   .catch(() => {
+     document.getElementById('qr-reader').innerHTML =
+       '<p style="color:#64748B;font-size:13px;padding:16px;text-align:center;">カメラへのアクセスが許可されていません。<br>手動でIDを入力してください。</p>';
+   });
+}
+
+// ── 手動入力 ──────────────────────────────────
+function loadByManualId() {
+  const id = document.getElementById('manualId').value.trim().toUpperCase();
+  if (id.length !== 8) return showError('エントリーIDは8文字です');
+  loadCustomerData(id);
+}
+
+// ── お客様データ取得 ───────────────────────────
+async function loadCustomerData(entryId) {
+  hideMessages();
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'lookupEntry', entryId, email: '__staff__' })
+    });
+
+    // スタッフ側は照合不要なので、別エンドポイントに相当する処理
+    // ここでは submitCustomer 後のデータをそのまま表示するため
+    // GASのlookupEntryをスタッフ専用モードで呼ぶ（emailを'__staff__'で送るとGAS側でスキップ）
+    const data = await res.json();
+
+    if (!data.success && data.error !== 'メールアドレスが一致しません') {
+      return showError(data.error || '読み取りに失敗しました');
+    }
+
+    // お客様情報の表示（GASから返ってくるデータを使用）
+    showCustomerInfo(entryId, data);
+    currentEntryId = entryId;
+
+  } catch (e) {
+    showError('通信エラーが発生しました');
+  }
+}
+
+// スタッフ用：エントリーIDだけで情報を取得する
+async function loadCustomerDataForStaff(entryId) {
+  hideMessages();
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'getEntryForStaff', entryId })
+    });
+    const data = await res.json();
+    if (!data.success) return showError(data.error || '読み取りに失敗しました');
+    showCustomerInfo(entryId, data);
+    currentEntryId = entryId;
+  } catch (e) {
+    showError('通信エラーが発生しました');
+  }
+}
+
+function showCustomerInfo(entryId, data) {
+  document.getElementById('ci-id').textContent       = entryId;
+  document.getElementById('ci-name').textContent     = data.name     || '-';
+  document.getElementById('ci-email').textContent    = data.email    || '-';
+  document.getElementById('ci-phone').textContent    = data.phone    || '-';
+  document.getElementById('ci-contract').textContent = data.contractType || '-';
+  document.getElementById('ci-date').textContent     = data.contractDate || '-';
+
+  document.getElementById('customerInfo').classList.add('show');
+  document.getElementById('staffForm').classList.add('show');
+  document.getElementById('scanCard').style.display = 'none';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 金額選択 ──────────────────────────────────
+function selectAmount(amount) {
+  selectedAmount = amount;
+  document.getElementById('customAmount').value = '';
+
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  const btns = document.querySelectorAll('.amount-btn');
+  const amounts = [5000,10000,15000,20000,25000,30000,35000,40000,45000,50000,55000,60000];
+  const idx = amounts.indexOf(amount);
+  if (idx >= 0) btns[idx].classList.add('selected');
+
+  updatePreview(amount);
+}
+
+function onCustomAmount(val) {
+  const v = parseInt(val);
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  if (!isNaN(v) && v > 0) {
+    selectedAmount = v;
+    updatePreview(v);
+  } else {
+    selectedAmount = null;
+    document.getElementById('amountPreview').classList.remove('show');
+  }
+}
+
+function updatePreview(amount) {
+  document.getElementById('previewValue').textContent = '¥' + amount.toLocaleString();
+  document.getElementById('amountPreview').classList.add('show');
+}
+
+// ── スタッフ送信 ──────────────────────────────
+async function submitStaff() {
+  hideMessages();
+
+  if (!currentEntryId)  return showError('お客様のQRコードを読み取ってください');
+  if (!selectedAmount)   return showError('キャッシュバック金額を選択してください');
+  if (selectedAmount > 60000) return showError('金額は60,000円以下にしてください');
+
+  const staffId       = document.getElementById('staffId').value.trim();
+  const staffBirthday = document.getElementById('staffBirthday').value;
+
+  if (!staffId)       return showError('社員番号を入力してください');
+  if (!staffBirthday) return showError('生年月日を選択してください');
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('submitBtn').disabled = true;
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'submitStaff',
+        entryId:       currentEntryId,
+        cbAmount:      selectedAmount,
+        staffId,
+        staffBirthday,
+      })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      showError(data.error || '登録に失敗しました');
+      return;
+    }
+
+    showDone(data.entry);
+
+  } catch (e) {
+    showError('通信エラーが発生しました');
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+function showDone(entry) {
+  document.getElementById('staffForm').classList.remove('show');
+  document.getElementById('customerInfo').classList.remove('show');
+
+  const s = document.getElementById('doneSummary');
+  s.innerHTML = `
+    <div class="info-row"><span class="info-label">氏名</span><span class="info-value">${entry?.name || '-'}</span></div>
+    <div class="info-row"><span class="info-label">契約内容</span><span class="info-value">${entry?.contractType || '-'}</span></div>
+    <div class="info-row"><span class="info-label">CB金額</span><span class="info-value" style="color:#D97706;font-size:18px">¥${selectedAmount?.toLocaleString()}</span></div>
+    <div class="info-row"><span class="info-label">担当スタッフ</span><span class="info-value">${entry?.staffName || '-'}</span></div>
+    <div class="info-row"><span class="info-label">申請期間</span><span class="info-value">${entry?.claimStart || '-'} 〜 ${entry?.claimEnd || '-'}</span></div>
+  `;
+  document.getElementById('doneScreen').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetForm() {
+  currentEntryId = null;
+  selectedAmount  = null;
+  document.getElementById('doneScreen').style.display = 'none';
+  document.getElementById('scanCard').style.display = 'block';
+  document.getElementById('customerInfo').classList.remove('show');
+  document.getElementById('staffForm').classList.remove('show');
+  document.getElementById('amountPreview').classList.remove('show');
+  document.getElementById('staffId').value       = '';
+  document.getElementById('staffBirthday').value = '';
+  document.getElementById('manualId').value      = '';
+  document.getElementById('customAmount').value  = '';
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  hideMessages();
+  startScanner();
+}
+
+function showError(msg) {
+  const el = document.getElementById('alertError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function hideMessages() {
+  document.getElementById('alertError').style.display   = 'none';
+  document.getElementById('alertSuccess').style.display = 'none';
+}
+
+// GASにスタッフ専用取得エンドポイントを追加
+// 起動
+window.addEventListener('load', startScanner);
+</script>
+</body>
+</html>
