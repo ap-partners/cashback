@@ -170,7 +170,7 @@
       <div class="card-title">スタッフ認証</div>
       <div class="field">
         <label>社員番号 <span class="required">必須</span></label>
-        <input type="text" id="staffId" placeholder="例: 104255">
+        <input type="text" id="staffId" placeholder="例: 104255" inputmode="numeric" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
       </div>
       <div class="field">
         <label>生年月日 <span class="required">必須</span></label>
@@ -193,8 +193,26 @@
       </div>
     </div>
 
+    <!-- 最終確認画面 -->
+    <div id="finalConfirmScreen" style="display:none;">
+      <div class="card" style="border:2px solid #2A7A8A;">
+        <div class="card-title">📋 最終確認</div>
+        <div style="font-size:13px;color:#64748B;margin-bottom:14px;">以下の内容で登録します。内容を確認してから送信してください。</div>
+        <div class="info-row"><span class="info-label">氏名</span><span class="info-value" id="fc-name">-</span></div>
+        <div class="info-row"><span class="info-label">契約内容</span><span class="info-value" id="fc-contract">-</span></div>
+        <div class="info-row"><span class="info-label">契約日</span><span class="info-value" id="fc-date">-</span></div>
+        <div class="info-row"><span class="info-label">キャッシュバック金額</span><span class="info-value" style="color:#D97706;font-size:20px;" id="fc-amount">-</span></div>
+        <div class="info-row"><span class="info-label">申込番号</span><span class="info-value" style="letter-spacing:0.08em;" id="fc-appno">-</span></div>
+        <div class="info-row"><span class="info-label">担当スタッフ</span><span class="info-value" id="fc-staff">-</span></div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button onclick="backToForm()" style="flex:1;height:48px;border-radius:10px;border:2px solid #CBD5E1;background:white;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;color:#64748B;">← 修正する</button>
+          <button onclick="submitStaff()" id="finalSubmitBtn" style="flex:2;height:48px;border-radius:10px;border:none;background:#2A7A8A;color:white;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">この内容で送信する</button>
+        </div>
+      </div>
+    </div>
+
     <div class="loading" id="loading"><div class="spinner"></div>登録中...</div>
-    <button class="btn btn-primary" id="submitBtn" onclick="submitStaff()">確認済み・登録して完了する →</button>
+    <button class="btn btn-primary" id="submitBtn" onclick="showFinalConfirm()">確認画面へ進む →</button>
   </div>
 
   <!-- 完了画面 -->
@@ -298,6 +316,41 @@ function updateConfirm() {
   }
 }
 
+function showFinalConfirm() {
+  hideMessages();
+
+  if (!currentEntryId)  return showError('お客様のQRコードを読み取ってください');
+  if (!selectedAmount)   return showError('キャッシュバック金額を選択してください');
+  if (selectedAmount > 60000) return showError('金額は60,000円以下にしてください');
+
+  const applicationNo = document.getElementById('applicationNo').value.trim();
+  const staffId       = document.getElementById('staffId').value.trim();
+  const staffBirthday = document.getElementById('staffBirthday').value.trim();
+
+  if (applicationNo.length !== 14) return showError('申込番号は14桁の数字で入力してください');
+  if (!staffId)       return showError('社員番号を入力してください');
+  if (staffBirthday.length !== 8) return showError('生年月日を8桁の数字で入力してください（例: 19900115）');
+
+  // 最終確認画面に値をセット
+  document.getElementById('fc-name').textContent     = document.getElementById('ci-name').textContent;
+  document.getElementById('fc-contract').textContent = document.getElementById('ci-contract').textContent;
+  document.getElementById('fc-date').textContent     = document.getElementById('ci-date').textContent;
+  document.getElementById('fc-amount').textContent   = '¥' + selectedAmount.toLocaleString();
+  document.getElementById('fc-appno').textContent    = applicationNo;
+  document.getElementById('fc-staff').textContent    = '社員番号: ' + staffId;
+
+  // フォームを隠して確認画面を表示
+  document.getElementById('staffForm').style.display = 'none';
+  document.getElementById('finalConfirmScreen').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToForm() {
+  document.getElementById('finalConfirmScreen').style.display = 'none';
+  document.getElementById('staffForm').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 async function submitStaff() {
   hideMessages();
   if (!currentEntryId)  return showError('お客様のQRコードを読み取ってください');
@@ -340,6 +393,8 @@ async function submitStaff() {
 
 function showDone(entry) {
   document.getElementById('staffForm').classList.remove('show');
+  document.getElementById('staffForm').style.display = 'none';
+  document.getElementById('finalConfirmScreen').style.display = 'none';
   document.getElementById('customerInfo').classList.remove('show');
   document.getElementById('confirmCard').classList.remove('show');
   const s = document.getElementById('doneSummary');
