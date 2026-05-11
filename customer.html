@@ -408,7 +408,10 @@ async function submitForm() {
   const email        = document.getElementById('email').value.trim();
   const phone        = document.getElementById('phone').value.trim();
   const contractType = document.getElementById('contractType').value;
-  const contractDate = document.getElementById('contractDate').value;
+  const contractDateRaw = document.getElementById('contractDate').value;
+  // 日付を「2026年05月11日」形式に変換して送信
+  const [y, m, d] = contractDateRaw.split('-');
+  const contractDate = y + '年' + m + '月' + d + '日';
 
   // バリデーション
   if (!name)         return showError('氏名を入力してください');
