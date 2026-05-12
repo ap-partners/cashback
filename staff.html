@@ -316,7 +316,7 @@ function updateConfirm() {
   }
 }
 
-function showFinalConfirm() {
+async function showFinalConfirm() {
   hideMessages();
 
   if (!currentEntryId)  return showError('お客様のQRコードを読み取ってください');
@@ -331,20 +331,40 @@ function showFinalConfirm() {
   if (!staffId)       return showError('社員番号を入力してください');
   if (staffBirthday.length !== 8) return showError('生年月日を8桁の数字で入力してください（例: 19900115）');
 
-  // 最終確認画面に値をセット
-  document.getElementById('fc-name').textContent     = document.getElementById('ci-name').textContent;
-  document.getElementById('fc-contract').textContent = document.getElementById('ci-contract').textContent;
-  document.getElementById('fc-date').textContent     = document.getElementById('ci-date').textContent;
-  document.getElementById('fc-amount').textContent   = '¥' + selectedAmount.toLocaleString();
-  document.getElementById('fc-appno').textContent    = applicationNo;
-  document.getElementById('fc-staff').textContent    = '社員番号: ' + staffId;
+  // ローディング表示
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('submitBtn').disabled = true;
 
-  // フォームを隠して確認画面を表示
-  document.getElementById('staffForm').classList.remove('show');
-  document.getElementById('customerInfo').classList.remove('show');
-  document.getElementById('confirmCard').classList.remove('show');
-  document.getElementById('finalConfirmScreen').style.display = 'block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try {
+    // GASで社員番号・生年月日を照合
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'verifyStaff', staffId, staffBirthday })
+    });
+    const data = await res.json();
+    if (!data.success) return showError(data.error || '認証に失敗しました');
+
+    // 照合成功 → 確認画面に値をセット
+    document.getElementById('fc-name').textContent     = document.getElementById('ci-name').textContent;
+    document.getElementById('fc-contract').textContent = document.getElementById('ci-contract').textContent;
+    document.getElementById('fc-date').textContent     = document.getElementById('ci-date').textContent;
+    document.getElementById('fc-amount').textContent   = '¥' + selectedAmount.toLocaleString();
+    document.getElementById('fc-appno').textContent    = applicationNo;
+    document.getElementById('fc-staff').textContent    = data.staffName + '（社員番号: ' + staffId + '）';
+
+    // フォームを隠して確認画面を表示
+    document.getElementById('staffForm').classList.remove('show');
+    document.getElementById('customerInfo').classList.remove('show');
+    document.getElementById('confirmCard').classList.remove('show');
+    document.getElementById('finalConfirmScreen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch(e) {
+    showError('通信エラーが発生しました');
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('submitBtn').disabled = false;
+  }
 }
 
 function backToForm() {
