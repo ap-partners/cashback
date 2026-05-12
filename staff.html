@@ -340,14 +340,16 @@ function showFinalConfirm() {
   document.getElementById('fc-staff').textContent    = '社員番号: ' + staffId;
 
   // フォームを隠して確認画面を表示
-  document.getElementById('staffForm').style.display = 'none';
+  document.getElementById('staffForm').classList.remove('show');
+  document.getElementById('customerInfo').style.display = 'none';
   document.getElementById('finalConfirmScreen').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function backToForm() {
   document.getElementById('finalConfirmScreen').style.display = 'none';
-  document.getElementById('staffForm').style.display = 'block';
+  document.getElementById('customerInfo').style.display = 'block';
+  document.getElementById('staffForm').classList.add('show');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -393,9 +395,9 @@ async function submitStaff() {
 
 function showDone(entry) {
   document.getElementById('staffForm').classList.remove('show');
-  document.getElementById('staffForm').style.display = 'none';
   document.getElementById('finalConfirmScreen').style.display = 'none';
   document.getElementById('customerInfo').classList.remove('show');
+  document.getElementById('customerInfo').style.display = '';
   document.getElementById('confirmCard').classList.remove('show');
   const s = document.getElementById('doneSummary');
   s.innerHTML = `
