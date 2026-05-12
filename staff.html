@@ -193,26 +193,26 @@
       </div>
     </div>
 
-    <!-- 最終確認画面 -->
-    <div id="finalConfirmScreen" style="display:none;">
-      <div class="card" style="border:2px solid #2A7A8A;">
-        <div class="card-title">📋 最終確認</div>
-        <div style="font-size:13px;color:#64748B;margin-bottom:14px;">以下の内容で登録します。内容を確認してから送信してください。</div>
-        <div class="info-row"><span class="info-label">氏名</span><span class="info-value" id="fc-name">-</span></div>
-        <div class="info-row"><span class="info-label">契約内容</span><span class="info-value" id="fc-contract">-</span></div>
-        <div class="info-row"><span class="info-label">契約日</span><span class="info-value" id="fc-date">-</span></div>
-        <div class="info-row"><span class="info-label">キャッシュバック金額</span><span class="info-value" style="color:#D97706;font-size:20px;" id="fc-amount">-</span></div>
-        <div class="info-row"><span class="info-label">申込番号</span><span class="info-value" style="letter-spacing:0.08em;" id="fc-appno">-</span></div>
-        <div class="info-row"><span class="info-label">担当スタッフ</span><span class="info-value" id="fc-staff">-</span></div>
-        <div style="margin-top:16px;display:flex;gap:10px;">
-          <button onclick="backToForm()" style="flex:1;height:48px;border-radius:10px;border:2px solid #CBD5E1;background:white;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;color:#64748B;">← 修正する</button>
-          <button onclick="submitStaff()" id="finalSubmitBtn" style="flex:2;height:48px;border-radius:10px;border:none;background:#2A7A8A;color:white;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">この内容で送信する</button>
-        </div>
-      </div>
-    </div>
-
     <div class="loading" id="loading"><div class="spinner"></div>登録中...</div>
     <button class="btn btn-primary" id="submitBtn" onclick="showFinalConfirm()">確認画面へ進む →</button>
+  </div>
+
+  <!-- 最終確認画面（staffFormの外に配置） -->
+  <div id="finalConfirmScreen" style="display:none;">
+    <div class="card" style="border:2px solid #2A7A8A;">
+      <div class="card-title">📋 最終確認</div>
+      <div style="font-size:13px;color:#64748B;margin-bottom:14px;">以下の内容で登録します。内容を確認してから送信してください。</div>
+      <div class="info-row"><span class="info-label">氏名</span><span class="info-value" id="fc-name">-</span></div>
+      <div class="info-row"><span class="info-label">契約内容</span><span class="info-value" id="fc-contract">-</span></div>
+      <div class="info-row"><span class="info-label">契約日</span><span class="info-value" id="fc-date">-</span></div>
+      <div class="info-row"><span class="info-label">キャッシュバック金額</span><span class="info-value" style="color:#D97706;font-size:20px;" id="fc-amount">-</span></div>
+      <div class="info-row"><span class="info-label">申込番号</span><span class="info-value" style="letter-spacing:0.08em;" id="fc-appno">-</span></div>
+      <div class="info-row"><span class="info-label">担当スタッフ</span><span class="info-value" id="fc-staff">-</span></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button onclick="backToForm()" style="flex:1;height:48px;border-radius:10px;border:2px solid #CBD5E1;background:white;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;color:#64748B;">← 修正する</button>
+        <button onclick="submitStaff()" id="finalSubmitBtn" style="flex:2;height:48px;border-radius:10px;border:none;background:#2A7A8A;color:white;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">この内容で送信する</button>
+      </div>
+    </div>
   </div>
 
   <!-- 完了画面 -->
@@ -341,14 +341,15 @@ function showFinalConfirm() {
 
   // フォームを隠して確認画面を表示
   document.getElementById('staffForm').classList.remove('show');
-  document.getElementById('customerInfo').style.display = 'none';
+  document.getElementById('customerInfo').classList.remove('show');
+  document.getElementById('confirmCard').classList.remove('show');
   document.getElementById('finalConfirmScreen').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function backToForm() {
   document.getElementById('finalConfirmScreen').style.display = 'none';
-  document.getElementById('customerInfo').style.display = 'block';
+  document.getElementById('customerInfo').classList.add('show');
   document.getElementById('staffForm').classList.add('show');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
