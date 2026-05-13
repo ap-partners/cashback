@@ -157,8 +157,9 @@
         <div class="field"><label>支店名 <span class="required">必須</span></label><input type="text" id="bankBranch" placeholder="例: 新宿支店"></div>
         <div class="field"><label>支店コード（3桁） <span class="required">必須</span></label><input type="text" id="branchCode" placeholder="例: 001" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)"></div>
         <div class="field">
-          <label>口座種別 <span class="required">必須</span></label>
-          <div class="select-wrap"><select id="bankType"><option value="">選択してください</option><option value="普通">普通</option><option value="当座">当座</option></select></div>
+          <label>口座種別</label>
+          <div style="height:46px;border:1.5px solid var(--border);border-radius:8px;padding:0 12px;display:flex;align-items:center;background:#F1F5F9;color:#64748B;font-size:15px;">普通（固定）</div>
+          <input type="hidden" id="bankType" value="普通">
         </div>
         <div class="field"><label>口座番号 <span class="required">必須</span></label><input type="text" id="bankNumber" placeholder="例: 1234567" inputmode="numeric"></div>
         <div class="field"><label>口座名義（カナ） <span class="required">必須</span></label><input type="text" id="bankHolder" placeholder="例: ヤマダ タロウ"></div>
@@ -188,8 +189,9 @@
 
         <div class="field"><label>店名（3桁の漢数字） <span class="required">必須</span></label><input type="text" id="yuchoBranchName" placeholder="例: 〇一八（ゼロイチハチ）"></div>
         <div class="field">
-          <label>口座種別 <span class="required">必須</span></label>
-          <div class="select-wrap"><select id="yuchoType"><option value="">選択してください</option><option value="普通">普通</option><option value="当座">当座</option></select></div>
+          <label>口座種別</label>
+          <div style="height:46px;border:1.5px solid var(--border);border-radius:8px;padding:0 12px;display:flex;align-items:center;background:#F1F5F9;color:#64748B;font-size:15px;">普通（固定）</div>
+          <input type="hidden" id="yuchoType" value="普通">
         </div>
         <div class="field"><label>口座番号（7桁） <span class="required">必須</span></label><input type="text" id="yuchoNumber" placeholder="例: 1234567" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,7)"></div>
         <div class="field"><label>口座名義（カナ） <span class="required">必須</span></label><input type="text" id="yuchoHolder" placeholder="例: ヤマダ タロウ"></div>
@@ -312,10 +314,16 @@ function selectMethod(method, e) {
   document.getElementById('bankForm').classList.remove('show');
   document.getElementById('yuchoForm').classList.remove('show');
   // 選択された方法のフォームを表示
-  if (method === '銀行振込')     document.getElementById('bankForm').classList.add('show');
-  if (method === 'ゆうちょ銀行') document.getElementById('yuchoForm').classList.add('show');
+  let targetForm = null;
+  if (method === '銀行振込')     { document.getElementById('bankForm').classList.add('show'); targetForm = document.getElementById('bankForm'); }
+  if (method === 'ゆうちょ銀行') { document.getElementById('yuchoForm').classList.add('show'); targetForm = document.getElementById('yuchoForm'); }
   document.getElementById('toFinalConfirmBtn').style.display = 'flex';
-  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  // フォームの先頭（注意書き）が見える位置にスクロール
+  if (targetForm) {
+    setTimeout(() => {
+      targetForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
 }
 
 function showFinalConfirm() {
