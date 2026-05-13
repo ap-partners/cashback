@@ -147,6 +147,7 @@
       <div class="custom-amount-wrap">
         <label>任意入力</label>
         <input type="number" id="customAmount" placeholder="例: 22000" min="1000" max="60000" step="1000" oninput="onCustomAmount(this.value)">
+        <div style="font-size:11px;color:#64748B;margin-top:4px;">※ 1,000円単位で入力してください</div>
         <span>円（上限¥60,000）</span>
       </div>
       <div class="amount-preview" id="amountPreview">
@@ -295,9 +296,17 @@ function onCustomAmount(val) {
   const v = parseInt(val);
   document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
   if (!isNaN(v) && v > 0) {
-    selectedAmount = v;
-    document.getElementById('previewValue').textContent = '¥' + v.toLocaleString();
-    document.getElementById('amountPreview').classList.add('show');
+    if (v % 1000 !== 0) {
+      selectedAmount = null;
+      document.getElementById('previewValue').textContent = '⚠ 1,000円単位で入力してください';
+      document.getElementById('amountPreview').classList.add('show');
+      document.getElementById('amountPreview').style.background = '#DC2626';
+    } else {
+      selectedAmount = v;
+      document.getElementById('amountPreview').style.background = '';
+      document.getElementById('previewValue').textContent = '¥' + v.toLocaleString();
+      document.getElementById('amountPreview').classList.add('show');
+    }
   } else {
     selectedAmount = null;
     document.getElementById('amountPreview').classList.remove('show');
