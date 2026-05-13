@@ -132,14 +132,6 @@
           <div class="method-btn-title">🏤 ゆうちょ銀行</div>
           <div class="method-btn-sub">ゆうちょ銀行口座へお振込みします</div>
         </button>
-        <button class="method-btn" onclick="selectMethod('商品券', event)">
-          <div class="method-btn-title">🎁 商品券（郵送）</div>
-          <div class="method-btn-sub">ご指定の住所へ商品券を郵送します</div>
-        </button>
-        <button class="method-btn" onclick="selectMethod('Amazonギフト券', event)">
-          <div class="method-btn-title">📦 Amazonギフト券</div>
-          <div class="method-btn-sub">エントリー時のメールアドレスに送付します</div>
-        </button>
       </div>
 
       <!-- 銀行振込フォーム -->
@@ -200,45 +192,6 @@
         </div>
         <div class="field"><label>口座番号（7桁） <span class="required">必須</span></label><input type="text" id="yuchoNumber" placeholder="例: 1234567" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,7)"></div>
         <div class="field"><label>口座名義（カナ） <span class="required">必須</span></label><input type="text" id="yuchoHolder" placeholder="例: ヤマダ タロウ"></div>
-      </div>
-
-      <!-- 商品券フォーム -->
-      <div class="address-form card" id="addressForm">
-        <div class="card-title">郵送先情報</div>
-
-        <div class="warning-box">
-          <div class="warning-title">⚠ 商品券についてのご注意</div>
-          <div class="warning-body">
-            ・商品券の<strong>種類はお選びいただけません</strong>。<br>
-            ・受け取り後の<strong>他の商品券・現金・ギフト券への交換はできません</strong>。<br>
-            ・予めご了承のうえ、お申し込みください。
-          </div>
-        </div>
-
-        <div style="height:14px"></div>
-
-        <div class="field"><label>お名前 <span class="required">必須</span></label><input type="text" id="addressName" placeholder="山田 太郎"></div>
-        <div class="field"><label>日中連絡先（電話番号） <span class="required">必須</span></label><input type="tel" id="addressPhone" placeholder="09012345678（ハイフンなし）" inputmode="numeric" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"></div>
-        <div class="field"><label>郵便番号 <span class="required">必須</span></label><input type="text" id="postCode" placeholder="例: 1234567（ハイフンなし）" inputmode="numeric" maxlength="7" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,7)"></div>
-        <div class="field"><label>住所 <span class="required">必須</span></label><textarea id="addressDetail" placeholder="都道府県・市区町村・番地・建物名・部屋番号"></textarea></div>
-      </div>
-
-      <!-- Amazonギフト券案内 -->
-      <div class="amazon-info card" id="amazonInfo">
-        <div class="card-title">Amazonギフト券について</div>
-        <div class="info-help">
-          <div class="info-help-title">📧 送付先メールアドレス</div>
-          エントリー時にご登録いただいたメールアドレス宛にAmazonギフト券コードをお送りします。<br>
-          メールアドレスの変更が必要な場合は、申請完了後にお問い合わせください。
-        </div>
-        <div class="warning-box">
-          <div class="warning-title">⚠ ご注意</div>
-          <div class="warning-body">
-            ・Amazonギフト券コードはメール内に記載されます。<br>
-            ・受信トレイ・迷惑メールフォルダのご確認をお願いします。<br>
-            ・他の受取方法への変更はできません。
-          </div>
-        </div>
       </div>
 
       <button class="btn btn-primary" id="toFinalConfirmBtn" onclick="showFinalConfirm()" style="display:none">確認画面へ進む →</button>
@@ -357,13 +310,9 @@ function selectMethod(method, e) {
   // すべての詳細フォームを隠す
   document.getElementById('bankForm').classList.remove('show');
   document.getElementById('yuchoForm').classList.remove('show');
-  document.getElementById('addressForm').classList.remove('show');
-  document.getElementById('amazonInfo').classList.remove('show');
   // 選択された方法のフォームを表示
-  if (method === '銀行振込')       document.getElementById('bankForm').classList.add('show');
-  if (method === 'ゆうちょ銀行')   document.getElementById('yuchoForm').classList.add('show');
-  if (method === '商品券')         document.getElementById('addressForm').classList.add('show');
-  if (method === 'Amazonギフト券') document.getElementById('amazonInfo').classList.add('show');
+  if (method === '銀行振込')     document.getElementById('bankForm').classList.add('show');
+  if (method === 'ゆうちょ銀行') document.getElementById('yuchoForm').classList.add('show');
   document.getElementById('toFinalConfirmBtn').style.display = 'flex';
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
@@ -408,29 +357,6 @@ function showFinalConfirm() {
       <div class="info-row"><span class="info-label">口座種別</span><span class="info-value">${yuchoType}</span></div>
       <div class="info-row"><span class="info-label">口座番号</span><span class="info-value">${yuchoNumber}</span></div>
       <div class="info-row"><span class="info-label">口座名義</span><span class="info-value">${yuchoHolder}</span></div>
-    `;
-  }
-
-  if (selectedMethod === '商品券') {
-    const addressName   = document.getElementById('addressName').value.trim();
-    const addressPhone  = document.getElementById('addressPhone').value.trim();
-    const postCode      = document.getElementById('postCode').value.trim();
-    const addressDetail = document.getElementById('addressDetail').value.trim();
-    if (!addressName || !addressPhone || !postCode || !addressDetail) return showError('商品券の郵送先情報をすべて入力してください');
-    if (postCode.length !== 7)  return showError('郵便番号は7桁で入力してください');
-    detailHtml = `
-      <div class="info-row"><span class="info-label">受取方法</span><span class="info-value">商品券（郵送）</span></div>
-      <div class="info-row"><span class="info-label">お名前</span><span class="info-value">${addressName}</span></div>
-      <div class="info-row"><span class="info-label">日中連絡先</span><span class="info-value">${addressPhone}</span></div>
-      <div class="info-row"><span class="info-label">郵便番号</span><span class="info-value">〒${postCode}</span></div>
-      <div class="info-row"><span class="info-label">住所</span><span class="info-value" style="text-align:right;max-width:60%;">${addressDetail}</span></div>
-    `;
-  }
-
-  if (selectedMethod === 'Amazonギフト券') {
-    detailHtml = `
-      <div class="info-row"><span class="info-label">受取方法</span><span class="info-value">Amazonギフト券</span></div>
-      <div class="info-row"><span class="info-label">送付先</span><span class="info-value">${entryData.email}</span></div>
     `;
   }
 
@@ -482,15 +408,6 @@ async function submitClaim() {
       yuchoType:       document.getElementById('yuchoType').value,
       yuchoNumber:     document.getElementById('yuchoNumber').value.trim(),
       yuchoHolder:     document.getElementById('yuchoHolder').value.trim(),
-    };
-  }
-
-  if (selectedMethod === '商品券') {
-    addressInfo = {
-      name:    document.getElementById('addressName').value.trim(),
-      phone:   document.getElementById('addressPhone').value.trim(),
-      postCode:document.getElementById('postCode').value.trim(),
-      detail:  document.getElementById('addressDetail').value.trim(),
     };
   }
 
