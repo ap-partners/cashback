@@ -218,6 +218,13 @@
   }
   .qr-instruction strong { color: var(--teal); }
 
+  .registered-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+  .registered-text strong { color: var(--teal); }
+
   .notice-box {
     background: #FFF7ED;
     border: 1px solid #FED7AA;
@@ -372,8 +379,28 @@
     <div class="notice-box">
       <div class="notice-title">📋 キャッシュバック受取について</div>
       受取申請は、本日お渡しする<strong>案内用紙のQRコード</strong>からお手続きください。
-      申請期間は契約日から約6ヵ月後〜8ヵ月後です。
+      申請期間は開通から約6ヵ月後〜8ヵ月後です。
       詳細は完了メールをご確認ください。
+    </div>
+  </div>
+
+  <!-- ═══ エントリー済み画面（重複エントリー時） ═══ -->
+  <div id="registeredScreen" class="qr-screen">
+    <div class="card">
+      <div class="card-title">エントリーは完了しています</div>
+      <div class="registered-text">
+        このメールアドレス・電話番号では、<strong>すでにエントリーが完了</strong>しています。
+        再度のエントリーは不要です。<br><br>
+        ご登録のメールアドレスに<strong>エントリー完了メールを再送</strong>しました。
+        エントリーID・申込番号・キャッシュバック金額はメールでご確認ください。
+      </div>
+    </div>
+
+    <div class="notice-box">
+      <div class="notice-title">📋 キャッシュバック受取について</div>
+      受取申請は、開通から約6ヵ月後に<strong>案内用紙裏面のQRコード</strong>からお手続きください。<br>
+      ご登録内容の変更やメールが届かない場合は
+      sb_agency@appart.co.jp までご連絡ください。
     </div>
   </div>
 
@@ -436,6 +463,12 @@ async function submitForm() {
     });
     const data = await res.json();
 
+    // すでに登録完了している場合はエントリー済み画面へ
+    if (data.duplicate === 'registered') {
+      showRegistered();
+      return;
+    }
+
     if (!data.success) {
       showError(data.error || '送信に失敗しました');
       return;
@@ -450,6 +483,16 @@ async function submitForm() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('submitBtn').disabled = false;
   }
+}
+
+function showRegistered() {
+  // ステップをすべて完了表示に
+  ['step1', 'step2', 'step3'].forEach(id => document.getElementById(id).className = 'step done');
+  ['line1', 'line2'].forEach(id => document.getElementById(id).className = 'step-line done');
+
+  document.getElementById('formScreen').style.display = 'none';
+  document.getElementById('registeredScreen').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showQR(entryId) {
